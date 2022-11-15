@@ -113,11 +113,18 @@ freq = LinRange(1,1/t,n)
 freq2 = LinRange(1,1/n2,n2)
 fPriceB = broadcast(abs,fftB)[1:n2 ÷ 2]*1/n2
 fPriceC = broadcast(abs,fftC)[1:n ÷ 2] *1/n
+
 #plotting results raw vs smooth
 
 bar(freq2[1:n2 ÷2],fPriceB,color="black",label="freq",title="Fourier Magnitude")
 #smooth data ==> !!! SIGNIFIGANT DIFFERENCE !!!
 bar(freq[1:n ÷2],fPriceC,color="black",label="freq",title="Fourier Magnitude")
+
+unSorted = -fftC
+i = sortperm(unSorted)
+sortd=unSorted[i]
+frqs =sortd
+frqs[1:5]
 
 #create sin waves of key frequencies
 #done by hand using plotly inteeractive bar chart
@@ -142,24 +149,51 @@ v2 = 1.05sin.(2π/9.2148 .* (1:waveLength))
 v3 = 0.66sin.(2π/6.55 .* (1:waveLength))
 v4 = 0.44sin.(2π/5.0526 .* (1:waveLength))
 #plotting last 200 days no forecasting
-plot1=plot(v[end-400:end-200])
-plot2=plot(v2[end-400:end-200])
-plot3=plot(v3[end-400:end-200])
-plot4=plot(v4[end-400:end-200])
-plot5=plot(price[end-200:end])
+plot1=plot(v[end-251:end-51],label="T1")
+plot2=plot(v2[end-251:end-51],label="T2",color="purple")
+plot3=plot(v3[end-251:end-51],label="T3,",color="orange")
+plot4=plot(v4[end-251:end-51],label="T4",color="black")
+plot5=plot(price[end-200:end],label="price",color="lime")
 
 
 
-plot(plot1,plot2,plot3,plot4,plot5,layout=grid(5,1))
+mixFIg=plot(plot1,plot2,plot3,plot4,plot5,layout=grid(5,1))
+savefig(mixFIg,"mixedFig.png")
 
 
 
-#fourier = freq[1:n ÷ 2]
-#fPrice = price[1:end-1297]
-#plot(fourier,j,title="Fourier Magnitude")
-v=v.+25
-#price with fourier forecasting
-plot(price[end-200:end]/600,title="Fourier forecasting")
-plot!(v[end-400:end])
+#plotting key frequency against normalized price 
+# this is to show frequency correlation to price
+# ignore the numerical price, focus on the movement
+# interesting eh
+v=v.-25
+plot(price[end-200:end]/600,title="Fourier forecasting",label="price/600")
+plot!(v[end-400:end],label="key T")
+
+
+
+#creating waves for forecasting
+# vertical shifts applied to level with price
+v = 5.5sin.(2π/21.81 .* (1:waveLength)).+50
+v2 = 1.05sin.(2π/9.2148 .* (1:waveLength)).+50
+v3 = 0.66sin.(2π/6.55 .* (1:waveLength)).+50
+v4 = 0.44sin.(2π/5.0526 .* (1:waveLength)).+50
+#summing waves for forecast
+test = v+v2+v3+v4
+test1 = test[1:end-51]
+#forecasting next 51 hours 
+prediction =test[end-51:end] 
+plot(prediction/1.18)
+
+
+
+
+#creating x values for forecasting 51 hours
+xx=collect(201:252)
+pyplot()
+#final forecasting (out of sample)
+finalFig=plot(price[end-200:end]/100,title="Fourier forecasting",label="price/100")
+finalFig=plot!(xx,prediction/1.18,label="Fourier forecast")
+savefig(finalFig,"fourierForecast.png")
 
 
